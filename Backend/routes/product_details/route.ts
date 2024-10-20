@@ -1,58 +1,109 @@
-import { NextResponse } from "next/server";
+import express, { Request, Response } from "express";
 import db from "../../lib/db";
 
+const router = express.Router();
+
 // Fetch all products
-export async function GET() {
+router.get("/", async (req: Request, res: Response) => {
   try {
     const [rows] = await db.query("SELECT * FROM product_details");
-    return NextResponse.json(rows);
+    res.json(rows);
   } catch (error) {
     console.error("Error fetching products:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch products" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to fetch products" });
   }
-}
-export async function POST(request: Request) {
+});
+
+// Add a new products
+router.post("/", async (req: Request, res: Response) => {
   try {
-    const { details } = await request.json();
+    const {
+      pro_id,
+      color_id,
+      size_id,
+      gender_id,
+      stock_quantity,
+      sku,
+      pro_image,
+      sale_price,
+      cost_price,
+    } = req.body;
 
-    // Ensure details is an array
-    if (!Array.isArray(details)) {
-      return NextResponse.json(
-        { error: "Invalid input, expected an array of product_details" },
-        { status: 400 }
-      );
-    }
-
-    // Generate the SQL query with placeholders
-    const sql = `
-      INSERT INTO product_details (pro_id, color_id, size_id, gender_id, stock_quantity, sku, pro_image, sale_price, cost_price)
-      VALUES ${details.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ")}
-    `;
-
-    // Flatten the array of product values into a single array
-    const values = details.flatMap((detail) => [
-      detail.pro_id,
-      detail.color_id,
-      detail.size_id,
-      detail.gender_id,
-      detail.stock_quantity,
-      detail.sku,
-      detail.pro_image,
-      detail.sale_price,
-      detail.cost_price,
-    ]);
-
-    await db.query(sql, values);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error inserting product_details:", error);
-    return NextResponse.json(
-      { error: "Failed to add product_details" },
-      { status: 500 }
+    const [result] = await db.query(
+      `INSERT INTO product_details (pro_id, color_id, size_id, gender_id, stock_quantity, sku, pro_image, sale_price, cost_price)
+ VALUES (?, ?, ?, ?)`,
+      [
+        pro_id,
+        color_id,
+        size_id,
+        gender_id,
+        stock_quantity,
+        sku,
+        pro_image,
+        sale_price,
+        cost_price,
+      ]
     );
+
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error("Error inserting products:", error);
+    res.status(500).json({ error: "Failed to add products" });
   }
-}
+});
+
+// Update an existing products
+router.put("/", async (req: Request, res: Response) => {
+  try {
+    const {
+      pro_id,
+      color_id,
+      size_id,
+      gender_id,
+      stock_quantity,
+      sku,
+      pro_image,
+      sale_price,
+      cost_price,
+    } = req.body;
+
+    const [result] = await db.query(
+      `UPDATE product_details SET pro_id, color_id, size_id, gender_id, stock_quantity, sku, pro_image, sale_price, cost_price = ? WHERE pro_id = ?`,
+      [
+        pro_id,
+        color_id,
+        size_id,
+        gender_id,
+        stock_quantity,
+        sku,
+        pro_image,
+        sale_price,
+        cost_price,
+      ]
+    );
+
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error("Error updating products:", error);
+    res.status(500).json({ error: "Failed to update products" });
+  }
+});
+
+// Delete an existing products
+router.delete("/", async (req: Request, res: Response) => {
+  try {
+    const { pro_id } = req.body;
+
+    const [result] = await db.query(
+      `DELETE FROM product_details WHERE pro_id = ?`,
+      [pro_id]
+    );
+
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error("Error deleting products:", error);
+    res.status(500).json({ error: "Failed to delete products" });
+  }
+});
+
+export default router;

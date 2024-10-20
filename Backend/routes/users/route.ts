@@ -20,7 +20,6 @@
 //   const connection = await db.getConnection(); // Get connection for transaction
 
 //   try {
-//     const data = req.body; // Use req.body to access the parsed JSON data
 //     const {
 //       name,
 //       lastname,
@@ -29,12 +28,12 @@
 //       username,
 //       password,
 //       image,
-//       address, // Address from the form
+//       address,
 //       district,
 //       amphoe,
 //       province,
 //       zipcode,
-//     } = data;
+//     } = req.body; // Access the parsed JSON data
 
 //     await connection.beginTransaction(); // Start transaction
 
@@ -71,7 +70,6 @@
 //   const connection = await db.getConnection(); // Get connection for transaction
 
 //   try {
-//     const data = req.body; // Use req.body to access the parsed JSON data
 //     const {
 //       userId,
 //       name,
@@ -86,7 +84,7 @@
 //       amphoe,
 //       province,
 //       zipcode,
-//     } = data;
+//     } = req.body; // Access the parsed JSON data
 
 //     await connection.beginTransaction(); // Start transaction
 
@@ -121,8 +119,7 @@
 //   const connection = await db.getConnection(); // Get connection for transaction
 
 //   try {
-//     const data = req.body; // Use req.body to access the parsed JSON data
-//     const { userId } = data;
+//     const { userId } = req.body; // Access the parsed JSON data
 
 //     await connection.beginTransaction(); // Start transaction
 

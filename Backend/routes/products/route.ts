@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import db from "../../lib/db"; // Ensure the path to your db connection is correct
+import db from "../../lib/db";
 
 const router = express.Router();
 
@@ -14,71 +14,54 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// Add multiple products
+// Add a new products
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const products = req.body;
+    const { pro_name, pro_des, type_id, band_id } = req.body;
 
-    // Ensure products is an array
-    if (!Array.isArray(products)) {
-      return res
-        .status(400)
-        .json({ error: "Invalid input, expected an array of products" });
-    }
+    const [result] = await db.query(
+      `INSERT INTO products (pro_name, pro_des, type_id, band_id)
+ VALUES (?, ?, ?, ?)`,
+      [pro_name, pro_des, type_id, band_id]
+    );
 
-    // Generate the SQL query with placeholders
-    const sql = `
-      INSERT INTO products (pro_name, pro_des, type_id, band_id)
-      VALUES ${products.map(() => "(?, ?, ?, ?)").join(", ")}
-    `;
-
-    // Flatten the array of product values into a single array
-    const values = products.flatMap((product) => [
-      product.pro_name,
-      product.pro_des,
-      product.type_id,
-      product.band_id,
-    ]);
-
-    await db.query(sql, values);
-
-    res.json({ success: true });
+    res.json({ success: true, result });
   } catch (error) {
     console.error("Error inserting products:", error);
     res.status(500).json({ error: "Failed to add products" });
   }
 });
 
-// Update an existing product
+// Update an existing products
 router.put("/", async (req: Request, res: Response) => {
   try {
-    const { id, pro_name, type_id, band_id } = req.body;
+    const { pro_id, pro_name, pro_des, type_id, band_id } = req.body;
 
-    await db.query(
-      `UPDATE products
-       SET pro_name = ?, type_id = ?, band_id = ?
-       WHERE pro_id = ?`,
-      [pro_name, type_id, band_id, id]
+    const [result] = await db.query(
+      `UPDATE products SET pro_id, pro_name, pro_des, type_id, band_id = ? WHERE pro_id = ?`,
+      [pro_id, pro_name, pro_des, type_id, band_id]
     );
 
-    res.json({ success: true });
+    res.json({ success: true, result });
   } catch (error) {
-    console.error("Error updating product:", error);
-    res.status(500).json({ error: "Failed to update product" });
+    console.error("Error updating products:", error);
+    res.status(500).json({ error: "Failed to update products" });
   }
 });
 
-// Delete a product
+// Delete an existing products
 router.delete("/", async (req: Request, res: Response) => {
   try {
-    const { id } = req.body;
+    const { pro_id } = req.body;
 
-    await db.query(`DELETE FROM products WHERE pro_id = ?`, [id]);
+    const [result] = await db.query(`DELETE FROM products WHERE pro_id = ?`, [
+      pro_id,
+    ]);
 
-    res.json({ success: true });
+    res.json({ success: true, result });
   } catch (error) {
-    console.error("Error deleting product:", error);
-    res.status(500).json({ error: "Failed to delete product" });
+    console.error("Error deleting products:", error);
+    res.status(500).json({ error: "Failed to delete products" });
   }
 });
 

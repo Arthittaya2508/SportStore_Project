@@ -1,25 +1,25 @@
-import { NextResponse } from "next/server";
+import express, { Request, Response } from "express";
 import db from "../../lib/db";
 
+const router = express.Router();
+
 // Fetch all employees
-export async function GET() {
+router.get("/", async (req: Request, res: Response) => {
   try {
     const [rows] = await db.query("SELECT * FROM employees");
-    return NextResponse.json(rows);
+    res.json(rows);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch employees" },
-      { status: 500 }
-    );
+    console.error("Error fetching employees:", error);
+    res.status(500).json({ error: "Failed to fetch employees" });
   }
-}
+});
 
 // Register a new employee
-export async function POST(request: Request) {
+router.post("/", async (req: Request, res: Response) => {
   const connection = await db.getConnection(); // Get connection for transaction
 
   try {
-    const data = await request.json();
+    const data = req.body; // Access the request body
     const {
       name,
       lastname,
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       username,
       password,
       image,
-      position, // field for position
+      position,
     } = data;
 
     await connection.beginTransaction(); // Start transaction
@@ -44,25 +44,22 @@ export async function POST(request: Request) {
 
     await connection.commit(); // Commit transaction
 
-    return NextResponse.json({ success: true, emp_id });
+    res.json({ success: true, emp_id });
   } catch (error) {
     await connection.rollback(); // Rollback transaction in case of error
     console.error("Error inserting employee:", error);
-    return NextResponse.json(
-      { error: "Failed to register employee" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to register employee" });
   } finally {
     connection.release(); // Release connection
   }
-}
+});
 
 // Update employee information
-export async function PUT(request: Request) {
+router.put("/", async (req: Request, res: Response) => {
   const connection = await db.getConnection(); // Get connection for transaction
 
   try {
-    const data = await request.json();
+    const data = req.body;
     const {
       emp_id,
       name,
@@ -96,25 +93,22 @@ export async function PUT(request: Request) {
 
     await connection.commit(); // Commit transaction
 
-    return NextResponse.json({ success: true });
+    res.json({ success: true });
   } catch (error) {
     await connection.rollback(); // Rollback transaction in case of error
     console.error("Error updating employee:", error);
-    return NextResponse.json(
-      { error: "Failed to update employee" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to update employee" });
   } finally {
     connection.release(); // Release connection
   }
-}
+});
 
 // Delete employee
-export async function DELETE(request: Request) {
+router.delete("/", async (req: Request, res: Response) => {
   const connection = await db.getConnection(); // Get connection for transaction
 
   try {
-    const { emp_id } = await request.json();
+    const { emp_id } = req.body;
 
     await connection.beginTransaction(); // Start transaction
 
@@ -123,15 +117,14 @@ export async function DELETE(request: Request) {
 
     await connection.commit(); // Commit transaction
 
-    return NextResponse.json({ success: true });
+    res.json({ success: true });
   } catch (error) {
     await connection.rollback(); // Rollback transaction in case of error
     console.error("Error deleting employee:", error);
-    return NextResponse.json(
-      { error: "Failed to delete employee" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to delete employee" });
   } finally {
     connection.release(); // Release connection
   }
-}
+});
+
+export default router;

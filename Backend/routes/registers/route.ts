@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server";
+import express, { Request, Response } from "express";
 import db from "../../lib/db";
 
-export async function POST(request: Request) {
+const router = express.Router();
+
+// Register a new user
+router.post("/", async (req: Request, res: Response) => {
   try {
-    const data = await request.json();
     const { name, lastname, telephone, email, username, password, image } =
-      data;
+      req.body;
 
     const userQuery = `
       INSERT INTO users (name, lastname, telephone, email, username, password, image) 
@@ -26,12 +28,11 @@ export async function POST(request: Request) {
     // Cast userResult to any to bypass TypeScript error
     const userId = (userResult as any).insertId;
 
-    return NextResponse.json({ success: true, userId });
+    res.json({ success: true, userId });
   } catch (error) {
     console.error("Error inserting user:", error);
-    return NextResponse.json(
-      { error: "Failed to register user" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to register user" });
   }
-}
+});
+
+export default router;
